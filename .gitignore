@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.idea/
+.vscode/
+
+# Logs
+logs/*.log
+logs/*.json
+
+# Uploads & frames
+uploads/
+frames/
+recognized/
+video_meta/
+
+# OS
+.DS_Store
+Thumbs.db

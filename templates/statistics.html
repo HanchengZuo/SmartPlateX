@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>车牌统计结果</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="{{ url_for('static', filename='js/statistics.js') }}" defer></script>
+</head>
+
+<body>
+    <h2>📊 全部识别结果统计</h2>
+
+    <h3>📍 地区分布</h3>
+    <ul id="regionList"></ul>
+
+    <h3>🎨 颜色分布</h3>
+    <ul id="colorList"></ul>
+
+    <h3>🚗 车辆类型分布</h3>
+    <p>根据车牌颜色统计：<code>green</code> 和 <code>yellow_green</code> 为新能源车，其它为油车</p>
+
+    <div class="stats-container">
+        <canvas id="allRegionChart" width="400" height="200"></canvas>
+        <canvas id="vehicleTypeChart" width="400" height="200" style="margin-top:30px;"></canvas>
+    </div>
+
+    <br />
+    <a href="/">← 返回主页</a>
+</body>
+
+</html>
