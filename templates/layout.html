@@ -1,0 +1,38 @@
+<!-- layout.html -->
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>智能车牌识别与统计系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 引入 Chart.js 和主脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+</head>
+
+<body>
+    <!-- 整体容器 -->
+    <div class="grid-layout">
+        <!-- 顶部栏 -->
+        <header class="page-header">
+            <h1>智能车牌识别与统计系统 🚗 </h1>
+            <p>Smart License Plate Recognition & Analytics System | v2.0.0</p>
+        </header>
+
+        <!-- 左侧菜单栏 -->
+        <nav class="sidebar">
+            <h2>菜单导航</h2>
+            <ul>
+                <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">首页</a></li>
+                <li><a href="/videos" class="{% if 'videos' in request.path %}active{% endif %}">视频库</a></li>
+                <li><a href="/recognize" class="{% if 'recognize' in request.path %}active{% endif %}">车牌识别</a></li>
+                <li><a href="/statistics" class="{% if 'statistics' in request.path %}active{% endif %}">统计总览</a></li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>

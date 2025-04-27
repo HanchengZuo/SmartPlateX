@@ -1,23 +1,49 @@
-<!DOCTYPE html>
-<html lang="zh">
+{% extends "layout.html" %}
+{% block content %}
 
-<head>
-    <meta charset="UTF-8" />
-    <title>车牌统计结果</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="{{ url_for('static', filename='js/statistics.js') }}" defer></script>
-</head>
-
-<body>
+<div class="section">
+    <hr>
     <h2>📊 全部识别结果统计</h2>
 
-    <h3>📍 地区分布</h3>
-    <ul id="regionList"></ul>
+    <div class="fallback-stats">
+        <h4>📍 地区分布：</h4>
+        <table border="1" cellpadding="6" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>地区简称</th>
+                    <th>数量</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for region, count in region_stats.items() %}
+                <tr>
+                    <td>{{ region }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <h3>🎨 颜色分布</h3>
-    <ul id="colorList"></ul>
+        <h4 style="margin-top: 20px;">🎨 颜色分布：</h4>
+        <table border="1" cellpadding="6" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>颜色</th>
+                    <th>数量</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for color, count in color_stats.items() %}
+                <tr>
+                    <td>{{ color }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-    <h3>🚗 车辆类型分布</h3>
+    <h3 style="margin-top:30px;">🚗 车辆类型分布</h3>
     <p>根据车牌颜色统计：<code>green</code> 和 <code>yellow_green</code> 为新能源车，其它为油车</p>
 
     <div class="stats-container">
@@ -25,8 +51,8 @@
         <canvas id="vehicleTypeChart" width="400" height="200" style="margin-top:30px;"></canvas>
     </div>
 
-    <br />
-    <a href="/">← 返回主页</a>
-</body>
+</div>
 
-</html>
+<script src="{{ url_for('static', filename='js/statistics.js') }}" defer></script>
+
+{% endblock %}

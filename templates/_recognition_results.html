@@ -1,0 +1,73 @@
+{% if results %}
+<div class="section">
+    <h3>识别结果：</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>帧图文件名</th>
+                <th>车牌号</th>
+                <th>颜色</th>
+                <th>置信度</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td>{{ r.frame }}</td>
+                <td>{{ r.plate }}</td>
+                <td>{{ r.color }}</td>
+                <td>{{ r.confidence }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 视频识别统计 -->
+<div class="section">
+    <hr>
+    <h3>🎯 当前视频识别统计</h3>
+    <div class="fallback-stats">
+        <h4>📍 地区分布：</h4>
+        <table border="1" cellpadding="6" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>地区简称</th>
+                    <th>数量</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for region, count in current_region_stats.items() %}
+                <tr>
+                    <td>{{ region }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h4 style="margin-top:20px;">🎨 颜色分布：</h4>
+        <table border="1" cellpadding="6" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>颜色</th>
+                    <th>数量</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for color, count in current_color_stats.items() %}
+                <tr>
+                    <td>{{ color }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stats-container">
+        <canvas id="regionChart" width="400" height="200"></canvas>
+        <canvas id="colorChart" width="400" height="200" style="margin-top:30px;"></canvas>
+    </div>
+</div>
+{% endif %}

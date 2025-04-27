@@ -7,13 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const colorLabels = data.colorLabels;
             const colorValues = data.colorValues;
 
-            // 渲染文本列表
-            const regionList = document.getElementById("regionList");
-            regionList.innerHTML = regionLabels.map((r, i) => `<li>${r}：${regionValues[i]}</li>`).join("");
-
-            const colorList = document.getElementById("colorList");
-            colorList.innerHTML = colorLabels.map((c, i) => `<li>${c}：${colorValues[i]}</li>`).join("");
-
             // 车辆类型统计
             let fuelCount = 0;
             let evCount = 0;

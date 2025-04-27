@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<form id="recognize-form" enctype="multipart/form-data">
+    <!-- 步骤一：选择视频 -->
+    <div class="section">
+        <h2>📁 上传视频并配置识别参数</h2>
+        <label class="file-label">
+            选择本地视频文件：
+            <input type="file" name="video" id="video-input" />
+        </label>
+    </div>
+
+    <!-- 步骤二：配置参数（初始隐藏） -->
+    <div id="config-section" class="section" style="display: none;">
+        <!-- 第1行：帧率 + 识别方式 -->
+        <div class="form-row">
+            <div class="form-item">
+                <label for="fps">🎞 抽帧帧率（fps）:</label>
+                <input type="number" name="fps" id="fps" value="1" />
+            </div>
+
+            <div class="form-item">
+                <label for="recognition_method">🤖 选择识别方式:</label>
+                <select name="recognition_method" onchange="toggleAPIConfig(this.value)">
+                    <option value="baidu" selected>百度云 OCR</option>
+                    <option value="tencent">腾讯云 OCR</option>
+                    <option value="yolo">YOLOv8（本地模型）</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 第2行：API Key + Secret Key -->
+        <div id="baidu-config" class="form-column">
+            <div class="form-item">
+                <label for="baidu_api_key">🔐 <span style="color: #ff6666;">*</span> 百度 API Key：</label>
+                <input type="text" name="baidu_api_key" id="baidu_api_key" placeholder="请输入 API Key" required>
+            </div>
+            <div class="form-item">
+                <label for="baidu_secret_key">🔐 <span style="color: #ff6666;">*</span> 百度 Secret Key：</label>
+                <input type="text" name="baidu_secret_key" id="baidu_secret_key" placeholder="请输入 Secret Key" required>
+            </div>
+        </div>
+
+        <div id="tencent-config" class="form-column" style="display: none;">
+            <div class="form-item">
+                <label for="tencent_secret_id">🔑 腾讯云 SecretId：</label>
+                <input type="text" name="tencent_secret_id" placeholder="腾讯云账号的 SecretId" required>
+            </div>
+            <div class="form-item">
+                <label for="tencent_secret_key">🔐 腾讯云 SecretKey：</label>
+                <input type="text" name="tencent_secret_key" placeholder="腾讯云账号的 SecretKey" required>
+            </div>
+        </div>
+
+
+        <!-- 警告信息 -->
+        <div id="yolo-warning" style="margin-top: 10px; display: none; color: orange; font-weight: bold;">
+            ⚠️ 当前仅支持百度云识别，本地 YOLO 模型暂未开放。
+        </div>
+
+        <br>
+        <button type="submit" class="btn">🚀 上传并开始识别</button>
+    </div>
+
+</form>
+
+
+
+<!-- 抽帧进度提示 -->
+<div id="loading" class="section" style="display: none;">
+    <p class="progress-hint">⏳ 正在抽帧，请稍候...</p>
+    <pre id="progress-log"></pre>
+</div>
+
+<!-- 识别进度提示 -->
+<div id="recognition-status" class="section" style="display:none;">
+    <p class="progress-hint" id="recognition-text">⏳ 正在识别中，请稍候...</p>
+    <progress id="recognition-progress" value="0" max="100" style="width: 100%;"></progress>
+</div>
+
+<!-- 状态提示 -->
+{% if selected_video_id %}
+{% if results %}
+<p>识别状态：✅ 已完成</p>
+{% else %}
+<p>识别状态：❌ 未识别 </p>
+{% endif %}
+{% endif %}
+
+{% include "_recognition_results.html" %}
+
+<script src="{{ url_for('static', filename='js/recognize.js') }}"></script>
+
+
+{% endblock %}

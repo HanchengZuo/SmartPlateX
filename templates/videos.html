@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="section" id="step2">
+    <h2>视频库（按时间倒序）</h2>
+    <form method="get" action="/videos">
+        <label for="selected">选择待查看的视频：</label>
+        <select name="selected" id="selected" required>
+            <option value="" {% if not selected_filename %}selected{% endif %}>-- 请选择 --</option>
+            {% for video in videos %}
+            <option value="{{ video.name }}">{{ video.original_filename }} | {{ video.name }} | {{ video.duration }} 秒
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">确定</button>
+    </form>
+
+    {% if videos %}
+    <ul>
+        {% for video in videos %}
+        <li class="video-item">
+            <strong>原文件名：</strong>{{ video.original_name }}<br>
+            <strong>系统文件名：</strong>{{ video.name }}<br>
+            <strong>上传时间：</strong>{{ video.created_time | datetimeformat }}<br>
+            <strong>视频时长：</strong>{{ video.duration }} 秒 -
+            <a href="{{ video.url }}" target="_blank">预览</a>
+
+            <!-- 🗑 删除按钮 -->
+            <form method="post" action="/delete_video" class="delete-form" onsubmit="return confirm('确认删除该视频吗？')">
+                <input type="hidden" name="video_filename" value="{{ video.name }}">
+                <button type="submit" class="delete-btn" title="删除视频">×</button>
+            </form>
+        </li>
+        <hr>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>暂无视频</p>
+    {% endif %}
+</div>
+
+{% if selected_video_id %}
+<div class="section" id="step4">
+    <h2>帧图库（当前视频：{{ selected_video_id }}）</h2>
+
+    {% if frames %}
+    <div class="frame-grid">
+        {% for img in frames %}
+        <div class="frame-item">
+            <a href="{{ img.url }}" target="_blank">{{ img.name }}</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>暂无帧图片</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% include "_recognition_results.html" %}
+
+<script src="{{ url_for('static', filename='js/recognize.js') }}"></script>
+
+
+{% endblock %}

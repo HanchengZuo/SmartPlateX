@@ -9,8 +9,7 @@ venv/
 .vscode/
 
 # Logs
-logs/*.log
-logs/*.json
+logs/
 
 # Uploads & frames
 uploads/
