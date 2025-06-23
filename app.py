@@ -20,6 +20,16 @@ from flask import jsonify
 import hashlib
 import hmac
 
+import sys
+import os
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "local_models"))
+)
+
+from yolov8_plate.detect_and_recognize import detect_and_recognize_plate
+
+
 app = Flask(__name__)
 
 # 上传视频保存路径
@@ -556,9 +566,16 @@ def extract_frames():
     with open(log_path, "w") as log_file:
         process = subprocess.Popen(
             ["ffmpeg", "-i", video_path, "-vf", f"fps={fps}", output_pattern],
-            stdout=log_file,
-            stderr=log_file,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1,
         )
+
+        # 把输出一行行写入日志
+        for line in process.stdout:
+            log_file.write(line)
+            log_file.flush()
 
         # ✨ 关键！等待ffmpeg进程抽帧完成
         process.wait()
@@ -595,6 +612,8 @@ def recognize_all_frames():
         print("🔑 [Baidu AccessToken] 获取成功")
     elif method == "tencent":
         print("🔑 [使用腾讯云识别]")
+    elif method == "yolo":
+        print("🔑 [使用本地YOLO识别]")
     else:
         print("⚠️ 未知识别方法")
         return jsonify({"error": "未知识别方法"}), 400
@@ -630,6 +649,18 @@ def recognize_all_frames():
                             "plate": car.get("Number"),
                             "color": car.get("Color"),
                             "confidence": car.get("Confidence"),
+                            "raw": res,
+                        }
+                    )
+            elif method == "yolo":
+                res = detect_and_recognize_plate(full_path)
+                for car in res:
+                    results.append(
+                        {
+                            "frame": frame_file,
+                            "plate": car["number"],
+                            "color": car["color"],
+                            "confidence": "NA",  # ✅ 置信度填NA
                             "raw": res,
                         }
                     )

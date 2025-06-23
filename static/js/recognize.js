@@ -40,6 +40,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const uploadData = await uploadRes.json();
             const videoId = uploadData.video_id;
 
+            // ✅ 抽帧之前，开始轮询 logs/ffmpeg.log
+            startPollingFfmpegLog();
+
             // 第二步：请求开始抽帧（同步等待后端返回）
             const extractRes = await fetch("/extract", {
                 method: "POST",
@@ -49,6 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
             });
             const extractData = await extractRes.json();
+
+            // ✅ 抽帧结束后，停止轮询 logs/ffmpeg.log
+            stopPollingFfmpegLog();
+
             if (!extractRes.ok) {
                 alert("抽帧失败，请检查视频格式！");
                 return;
@@ -185,15 +192,15 @@ function toggleAPIConfig(value) {
     document.querySelector('input[name="tencent_secret_key"]')?.removeAttribute('required');
 
     // 再根据 value 显示对应块 + 添加 required
-    if (value === 'baidu') {
+    if (value === 'baidu' && baiduDiv) {   // ✅这里要加 && baiduDiv
         baiduDiv.style.display = 'block';
-        document.getElementById('baidu_api_key').setAttribute('required', 'required');
-        document.getElementById('baidu_secret_key').setAttribute('required', 'required');
-    } else if (value === 'tencent') {
+        document.getElementById('baidu_api_key')?.setAttribute('required', 'required');
+        document.getElementById('baidu_secret_key')?.setAttribute('required', 'required');
+    } else if (value === 'tencent' && tencentDiv) {  // ✅这里加 && tencentDiv
         tencentDiv.style.display = 'block';
-        document.querySelector('input[name="tencent_secret_id"]').setAttribute('required', 'required');
-        document.querySelector('input[name="tencent_secret_key"]').setAttribute('required', 'required');
-    } else if (value === 'yolo') {
+        document.querySelector('input[name="tencent_secret_id"]')?.setAttribute('required', 'required');
+        document.querySelector('input[name="tencent_secret_key"]')?.setAttribute('required', 'required');
+    } else if (value === 'yolo' && yoloWarn) {  // ✅这里加 && yoloWarn
         yoloWarn.style.display = 'block';
     }
 }
@@ -217,4 +224,30 @@ function pollRecognitionProgress(onComplete) {
             });
     }, 1000);
 }
+
+let ffmpegLogInterval = null;  // 全局变量，保存定时器
+
+function startPollingFfmpegLog() {
+    const loadingDiv = document.getElementById("loading");
+    if (!loadingDiv) return;
+
+    ffmpegLogInterval = setInterval(() => {
+        fetch("/progress")
+            .then(res => res.text())
+            .then(log => {
+                loadingDiv.textContent = "⏳ 正在抽帧中...\n\n" + log;
+            })
+            .catch(() => {
+                loadingDiv.textContent = "⏳ 正在抽帧中...（日志获取失败）";
+            });
+    }, 1000);
+}
+
+function stopPollingFfmpegLog() {
+    if (ffmpegLogInterval) {
+        clearInterval(ffmpegLogInterval);
+        ffmpegLogInterval = null;
+    }
+}
+
 
