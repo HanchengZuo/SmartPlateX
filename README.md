@@ -46,7 +46,56 @@ git clone https://github.com/HanchengZuo/SmartPlateX.git
 cd SmartPlateX
 ```
 
-### ✅ 创建虚拟环境并安装依赖 | Create venv & install dependencies
+### ✅ Docker 部署 | Deploy with Docker
+
+项目已支持通过 Docker Compose 部署，容器内使用 Gunicorn 启动 Flask，并安装 `ffmpeg/ffprobe` 用于视频抽帧。
+
+在项目根目录创建 `.env` 文件，配置百度 OCR Key：
+
+```env
+BAIDU_OCR_API_KEY=你的API_KEY
+BAIDU_OCR_SECRET_KEY=你的SECRET_KEY
+```
+
+启动服务：
+
+```bash
+docker compose up -d --build
+```
+
+访问地址：
+
+```text
+http://服务器IP:5010
+```
+
+查看日志：
+
+```bash
+docker compose logs -f smartplatex
+```
+
+停止服务：
+
+```bash
+docker compose down
+```
+
+Docker Compose 会将以下运行时目录挂载到宿主机，容器重建后数据不会丢失：
+
+- `uploads/`
+- `frames/`
+- `recognized/`
+- `video_meta/`
+- `logs/`
+
+默认端口映射为 `5010:5000`，避免与其他 Flask 项目的 `5000` 端口冲突。
+
+默认构建平台为 `linux/amd64`。如需覆盖，可在 `.env` 中设置 `DOCKER_PLATFORM=linux/arm64`。
+
+### ✅ 本地开发 | Local development
+
+#### 创建虚拟环境并安装依赖 | Create venv & install dependencies
 
 ```bash
 python3 -m venv venv
@@ -54,24 +103,32 @@ source venv/bin/activate         # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### ✅ 设置百度 OCR API 密钥 | Configure Baidu OCR Keys
+本地运行需要先安装 `ffmpeg`，并通过环境变量配置百度 OCR Key：
 
-在 `app.py` 中替换以下字段为你自己的百度 OCR 密钥：
-
-```python
-BAIDU_API_KEY = "你的API_KEY"
-BAIDU_SECRET_KEY = "你的SECRET_KEY"
+```bash
+export BAIDU_OCR_API_KEY=你的API_KEY
+export BAIDU_OCR_SECRET_KEY=你的SECRET_KEY
 ```
+
+也兼容旧环境变量名 `BAIDU_API_KEY` 和 `BAIDU_SECRET_KEY`。
 
 获取方式：https://console.bce.baidu.com/ai/#/ai/ocr/app/list
 
-### ✅ 启动项目 | Run the App
+#### 启动项目 | Run the App
 
 ```bash
 python app.py
 ```
 
 访问地址：`http://127.0.0.1:5000`
+
+### ✅ Docker 命令入口 | Docker command
+
+```bash
+docker compose up -d --build
+```
+
+访问地址：`http://服务器IP:5010`
 
 ---
 
@@ -80,6 +137,9 @@ python app.py
 ```
 SmartPlateX/
 ├── app.py                     # 主程序入口 Main Flask app
+├── Dockerfile                 # Docker 镜像构建文件
+├── docker-compose.yml         # Docker Compose 部署配置
+├── .dockerignore              # Docker 构建忽略规则
 ├── uploads/                  # 上传视频文件夹 Uploaded videos
 ├── frames/                   # 抽帧图像保存目录 Extracted frames
 ├── recognized/               # 识别结果（按视频 ID） Recognition results (JSON)
@@ -117,7 +177,7 @@ SmartPlateX/
 - ✅ 当前视频识别状态持久化展示  
 - ✅ 识别进度条和日志监控  
 - 🔄 增加多语言支持（支持中文车牌 + 英文 UI 切换）  
-- ⬆️ 支持 Docker 部署与百度云 AK/配置文件分离  
+- ✅ 支持 Docker 部署与百度云 AK/环境变量分离  
 - 📦 发布 Web Demo（GitHub Pages 或 Hugging Face Space）
 
 ---
@@ -133,4 +193,3 @@ This project is open-source and released under the MIT License.
 **Hancheng Zuo**  
 [🌐 hanchengzuo.com](https://hanchengzuo.com)  
 [🐙 GitHub @HanchengZuo](https://github.com/HanchengZuo)
-

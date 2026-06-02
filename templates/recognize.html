@@ -31,14 +31,14 @@
         </div>
 
         <!-- 第2行：API Key + Secret Key -->
-        <div id="baidu-config" class="form-column">
+        <div id="baidu-config" class="form-column" data-env-configured="{{ 'true' if baidu_ocr_configured else 'false' }}">
             <div class="form-item">
                 <label for="baidu_api_key">🔐 <span style="color: #ff6666;">*</span> 百度 API Key：</label>
-                <input type="text" name="baidu_api_key" id="baidu_api_key" placeholder="请输入 API Key" required>
+                <input type="text" name="baidu_api_key" id="baidu_api_key" placeholder="{{ '已通过环境变量配置，可留空' if baidu_ocr_configured else '请输入 API Key' }}" {% if not baidu_ocr_configured %}required{% endif %}>
             </div>
             <div class="form-item">
                 <label for="baidu_secret_key">🔐 <span style="color: #ff6666;">*</span> 百度 Secret Key：</label>
-                <input type="text" name="baidu_secret_key" id="baidu_secret_key" placeholder="请输入 Secret Key" required>
+                <input type="text" name="baidu_secret_key" id="baidu_secret_key" placeholder="{{ '已通过环境变量配置，可留空' if baidu_ocr_configured else '请输入 Secret Key' }}" {% if not baidu_ocr_configured %}required{% endif %}>
             </div>
         </div>
 

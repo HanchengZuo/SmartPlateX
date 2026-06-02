@@ -21,7 +21,6 @@ import hashlib
 import hmac
 
 import sys
-import os
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "local_models"))
@@ -32,19 +31,33 @@ from yolov8_plate.detect_and_recognize import detect_and_recognize_plate
 
 app = Flask(__name__)
 
-# 上传视频保存路径
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+
+def get_runtime_path(env_name, default_folder):
+    path = os.environ.get(env_name, default_folder)
+    if not os.path.isabs(path):
+        path = os.path.join(BASE_DIR, path)
+    return path
+
+
+# 运行时数据目录，可通过环境变量覆盖，Docker 部署时会挂载为持久化目录。
+UPLOAD_FOLDER = get_runtime_path("UPLOAD_FOLDER", "uploads")
+FRAME_FOLDER = get_runtime_path("FRAME_FOLDER", "frames")
+RECOGNIZED_FOLDER = get_runtime_path("RECOGNIZED_FOLDER", "recognized")
+VIDEO_META_FOLDER = get_runtime_path("VIDEO_META_FOLDER", "video_meta")
+LOG_FOLDER = get_runtime_path("LOG_FOLDER", "logs")
+
+for folder in [
+    UPLOAD_FOLDER,
+    FRAME_FOLDER,
+    RECOGNIZED_FOLDER,
+    VIDEO_META_FOLDER,
+    LOG_FOLDER,
+]:
+    os.makedirs(folder, exist_ok=True)
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-FRAME_FOLDER = "frames"
-os.makedirs(FRAME_FOLDER, exist_ok=True)
-
-RECOGNIZED_FOLDER = "recognized"
-os.makedirs(RECOGNIZED_FOLDER, exist_ok=True)
-
-VIDEO_META_FOLDER = "video_meta"
-os.makedirs(VIDEO_META_FOLDER, exist_ok=True)
 
 
 # 首页路由
@@ -129,7 +142,7 @@ def get_video_list(page=1, per_page=10):
             path = os.path.join(UPLOAD_FOLDER, filename)  # 视频文件完整路径
             video_id = os.path.splitext(filename)[0]  # 去掉扩展名得到 video_id
             meta_path = os.path.join(
-                "video_meta", f"{video_id}.json"
+                VIDEO_META_FOLDER, f"{video_id}.json"
             )  # 对应的视频元数据路径
 
             # 设置默认值（防止没有对应元数据文件时出错）
@@ -352,6 +365,7 @@ def recognize_page():
         results=results,
         current_region_stats=current_region_stats,
         current_color_stats=current_color_stats,
+        baidu_ocr_configured=has_baidu_env_credentials(),
     )
 
 
@@ -360,7 +374,7 @@ def recognize_page():
 def get_progress():
     try:
         # 尝试读取 ffmpeg 抽帧日志文件（该文件由 /extract 路由生成）
-        with open("logs/ffmpeg.log", "r") as f:
+        with open(os.path.join(LOG_FOLDER, "ffmpeg.log"), "r") as f:
             content = f.read()
 
         # 返回日志的最后 2000 个字符（避免整个日志太长，减轻前端负担）
@@ -369,6 +383,33 @@ def get_progress():
     except Exception:
         # 如果文件不存在或读取失败，返回默认提示
         return "暂无进度..."
+
+
+def get_baidu_env_credentials():
+    api_key = (
+        os.environ.get("BAIDU_OCR_API_KEY")
+        or os.environ.get("BAIDU_API_KEY")
+        or ""
+    ).strip()
+    secret_key = (
+        os.environ.get("BAIDU_OCR_SECRET_KEY")
+        or os.environ.get("BAIDU_SECRET_KEY")
+        or ""
+    ).strip()
+    return api_key, secret_key
+
+
+def has_baidu_env_credentials():
+    api_key, secret_key = get_baidu_env_credentials()
+    return bool(api_key and secret_key)
+
+
+def get_baidu_credentials(api_key=None, secret_key=None):
+    env_api_key, env_secret_key = get_baidu_env_credentials()
+    return (
+        env_api_key or (api_key or "").strip(),
+        env_secret_key or (secret_key or "").strip(),
+    )
 
 
 # 工具函数：获取百度智能云的 Access Token（用于调用 OCR 接口）
@@ -560,8 +601,8 @@ def extract_frames():
 
     output_pattern = os.path.join(output_dir, "frame_%04d.jpg")
 
-    log_path = "logs/ffmpeg.log"
-    os.makedirs("logs", exist_ok=True)
+    log_path = os.path.join(LOG_FOLDER, "ffmpeg.log")
+    os.makedirs(LOG_FOLDER, exist_ok=True)
 
     with open(log_path, "w") as log_file:
         process = subprocess.Popen(
@@ -603,11 +644,14 @@ def recognize_all_frames():
 
     print(f"🖼️ [抽帧图片总数] {total} 张")
 
-    progress_file = "logs/recognition_progress.json"
+    progress_file = os.path.join(LOG_FOLDER, "recognition_progress.json")
     with open(progress_file, "w") as f:
         json.dump({"current": 0, "total": total}, f)
 
     if method == "baidu":
+        baidu_key, baidu_secret = get_baidu_credentials(baidu_key, baidu_secret)
+        if not baidu_key or not baidu_secret:
+            return jsonify({"error": "请配置百度 OCR API Key 和 Secret Key"}), 400
         access_token = get_baidu_access_token(baidu_key, baidu_secret)
         print("🔑 [Baidu AccessToken] 获取成功")
     elif method == "tencent":
@@ -687,7 +731,7 @@ def recognize_all_frames():
 def recognition_progress():
     try:
         # 尝试读取识别进度 JSON 文件
-        with open("logs/recognition_progress.json", "r") as f:
+        with open(os.path.join(LOG_FOLDER, "recognition_progress.json"), "r") as f:
             data = json.load(f)
 
         # 返回当前进度数据，例如 {"current": 12, "total": 50}

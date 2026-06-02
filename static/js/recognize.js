@@ -193,9 +193,12 @@ function toggleAPIConfig(value) {
 
     // 再根据 value 显示对应块 + 添加 required
     if (value === 'baidu' && baiduDiv) {   // ✅这里要加 && baiduDiv
+        const baiduConfiguredByEnv = baiduDiv.dataset.envConfigured === 'true';
         baiduDiv.style.display = 'block';
-        document.getElementById('baidu_api_key')?.setAttribute('required', 'required');
-        document.getElementById('baidu_secret_key')?.setAttribute('required', 'required');
+        if (!baiduConfiguredByEnv) {
+            document.getElementById('baidu_api_key')?.setAttribute('required', 'required');
+            document.getElementById('baidu_secret_key')?.setAttribute('required', 'required');
+        }
     } else if (value === 'tencent' && tencentDiv) {  // ✅这里加 && tencentDiv
         tencentDiv.style.display = 'block';
         document.querySelector('input[name="tencent_secret_id"]')?.setAttribute('required', 'required');
@@ -249,5 +252,4 @@ function stopPollingFfmpegLog() {
         ffmpegLogInterval = null;
     }
 }
-
 

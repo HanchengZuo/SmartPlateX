@@ -1,0 +1,23 @@
+services:
+  smartplatex:
+    build: .
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    container_name: smartplatex
+    restart: unless-stopped
+    ports:
+      - "5010:5000"
+    environment:
+      FLASK_ENV: production
+      BAIDU_OCR_API_KEY: ${BAIDU_OCR_API_KEY:-}
+      BAIDU_OCR_SECRET_KEY: ${BAIDU_OCR_SECRET_KEY:-}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-1}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-300}
+      YOLO_CONFIG_DIR: /tmp/ultralytics
+      MPLCONFIGDIR: /tmp/matplotlib
+    volumes:
+      - ./uploads:/app/uploads
+      - ./frames:/app/frames
+      - ./recognized:/app/recognized
+      - ./video_meta:/app/video_meta
+      - ./logs:/app/logs
