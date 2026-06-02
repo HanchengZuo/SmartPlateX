@@ -5,13 +5,17 @@ __pycache__/
 *.pyd
 env/
 venv/
+.env
+
+# IDE
 .idea/
 .vscode/
 
 # Logs
 logs/
+*.log
 
-# Uploads & frames
+# Uploads & runtime data
 uploads/
 frames/
 recognized/
